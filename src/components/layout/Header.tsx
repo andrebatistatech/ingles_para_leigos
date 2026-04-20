@@ -15,14 +15,16 @@ export async function Header() {
   const isDashboard = pathname === '/dashboard'
 
   let isVip = false
+  let isAdmin = false
   if (user) {
     const serviceClient = createServiceClient()
     const { data: profile } = await serviceClient
       .from('profiles')
-      .select('is_vip')
+      .select('is_vip, is_admin')
       .eq('user_id', user.id)
       .single()
     isVip = profile?.is_vip === true
+    isAdmin = profile?.is_admin === true
   }
 
   return (
@@ -59,6 +61,13 @@ export async function Header() {
                   Novo Quiz
                 </Button>
               </Link>
+              {isAdmin && (
+                <Link href="/admin">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-text-main">
+                    Admin
+                  </Button>
+                </Link>
+              )}
               <LogoutButton />
             </>
           ) : (
