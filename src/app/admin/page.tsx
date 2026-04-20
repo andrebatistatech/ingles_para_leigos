@@ -51,7 +51,7 @@ export default async function AdminPage() {
                   <span className="text-muted-foreground">{r.email}</span>
                 </div>
                 {r.message && (
-                  <p className="text-muted-foreground italic">"{r.message}"</p>
+                  <p className="text-muted-foreground italic">&ldquo;{r.message}&rdquo;</p>
                 )}
                 <p className="text-xs text-muted-foreground">
                   {new Date(r.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
