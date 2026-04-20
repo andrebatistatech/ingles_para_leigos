@@ -66,6 +66,7 @@ export interface AnswerFeedback {
   ai_feedback?: string | null
   pending?: boolean  // true = avaliação de essay ainda em processamento
   answerId?: string  // id do quiz_answer, usado para polling do essay
+  vip_required?: boolean  // true = usuário não é VIP, AI não avaliou
 }
 
 // Retorno do /api/quiz/start

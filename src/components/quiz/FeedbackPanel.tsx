@@ -14,6 +14,7 @@ interface Props {
 export function FeedbackPanel({ feedback, onNext, nextLabel = 'Próxima questão' }: Props) {
   const [aiFeedback, setAiFeedback] = useState<string | null>(feedback.ai_feedback ?? null)
   const [polling, setPolling] = useState(feedback.pending === true)
+  const isVipRequired = feedback.vip_required === true
 
   useEffect(() => {
     if (!feedback.pending || !feedback.answerId) return
@@ -43,7 +44,7 @@ export function FeedbackPanel({ feedback, onNext, nextLabel = 'Próxima questão
   }, [feedback.pending, feedback.answerId])
 
   const isCorrect = feedback.is_correct
-  const isEssay = feedback.pending === true
+  const isEssay = feedback.pending === true || isVipRequired
 
   return (
     <div className="rounded-xl border bg-card p-5 shadow-sm space-y-4">
@@ -87,9 +88,20 @@ export function FeedbackPanel({ feedback, onNext, nextLabel = 'Próxima questão
 
       {/* Feedback da IA (essays) */}
       {isEssay && (
-        <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm space-y-1">
-          <p className="font-medium text-primary">🤖 Avaliação da IA</p>
-          {polling ? (
+        <div className={`rounded-lg border p-3 text-sm space-y-1 ${isVipRequired ? 'border-amber-400/40 bg-amber-400/5' : 'border-primary/20 bg-primary/5'}`}>
+          <p className={`font-medium ${isVipRequired ? 'text-amber-500' : 'text-primary'}`}>
+            {isVipRequired ? '⭐ Avaliação VIP' : '🤖 Avaliação da IA'}
+          </p>
+          {isVipRequired ? (
+            <div className="space-y-2">
+              <p className="text-muted-foreground">
+                Correção por IA disponível apenas para membros <strong>VIP</strong>.
+              </p>
+              <p className="text-xs text-amber-500/80">
+                Faça upgrade para receber feedback personalizado em suas redações.
+              </p>
+            </div>
+          ) : polling ? (
             <div className="space-y-2">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-3/4" />
@@ -105,7 +117,7 @@ export function FeedbackPanel({ feedback, onNext, nextLabel = 'Próxima questão
 
       <Button
         onClick={onNext}
-        disabled={isEssay && polling}
+        disabled={isEssay && polling && !isVipRequired}
         className="w-full bg-primary hover:bg-primary/90"
       >
         {nextLabel}
