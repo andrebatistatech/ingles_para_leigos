@@ -37,8 +37,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error || !session) {
-      console.error('[quiz/start] create session error:', error?.message, error?.code)
-      return NextResponse.json({ error: 'Failed to create session', detail: error?.message }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to create session' }, { status: 500 })
     }
     sessionId = session.id
   } else {
