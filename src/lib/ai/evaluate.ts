@@ -1,5 +1,5 @@
 import { generateText } from 'ai'
-import { anthropic } from '@ai-sdk/anthropic'
+import { openai } from '@ai-sdk/openai'
 import type { CEFRLevel } from '@/types'
 
 export interface EvaluationResult {
@@ -48,7 +48,7 @@ async function callModel(
   studentAnswer: string
 ): Promise<EvaluationResult> {
   const { text } = await generateText({
-    model: anthropic('claude-sonnet-4-6'),
+    model: openai('gpt-4o-mini'),
     system: SYSTEM_PROMPT,
     messages: [
       {

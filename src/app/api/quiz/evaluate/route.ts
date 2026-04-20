@@ -50,5 +50,6 @@ export async function GET(request: NextRequest) {
     ai_feedback: answer?.ai_feedback ?? null,
     pending: answer?.ai_feedback === null,
     failed: answer?.ai_feedback === 'evaluation_failed',
+    vip_required: answer?.ai_feedback === 'vip_required',
   })
 }

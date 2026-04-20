@@ -151,26 +151,50 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Para essay: disparar avaliação assíncrona (fire-and-forget)
+  // Para essay: disparar avaliação assíncrona apenas para VIPs (fire-and-forget)
   if (question.type === 'essay' && userAnswer && inserted) {
-    evaluateAndUpdate(
-      serviceClient,
-      inserted.id,
-      session.level,
-      question.question_text,
-      question.correct_answer,
-      userAnswer
-    )
+    const { data: profile } = await serviceClient
+      .from('profiles')
+      .select('is_vip')
+      .eq('user_id', user.id)
+      .single()
 
-    return NextResponse.json({
-      is_correct: null,
-      correct_answer: question.correct_answer,
-      explanation: question.explanation,
-      study_tip: question.study_tip,
-      score: null,
-      pending: true,
-      answerId: inserted.id,
-    })
+    if (profile?.is_vip) {
+      evaluateAndUpdate(
+        serviceClient,
+        inserted.id,
+        session.level,
+        question.question_text,
+        question.correct_answer,
+        userAnswer
+      )
+
+      return NextResponse.json({
+        is_correct: null,
+        correct_answer: question.correct_answer,
+        explanation: question.explanation,
+        study_tip: question.study_tip,
+        score: null,
+        pending: true,
+        answerId: inserted.id,
+      })
+    } else {
+      await serviceClient
+        .from('quiz_answers')
+        .update({ ai_feedback: 'vip_required' })
+        .eq('id', inserted.id)
+
+      return NextResponse.json({
+        is_correct: null,
+        correct_answer: question.correct_answer,
+        explanation: question.explanation,
+        study_tip: question.study_tip,
+        score: null,
+        pending: false,
+        vip_required: true,
+        answerId: inserted.id,
+      })
+    }
   }
 
   return NextResponse.json({
