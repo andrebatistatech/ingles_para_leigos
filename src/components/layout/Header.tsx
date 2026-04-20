@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { headers } from 'next/headers'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { LogoutButton } from './LogoutButton'
 import { ThemeToggle } from './ThemeToggle'
 
@@ -12,6 +13,17 @@ export async function Header() {
   const pathname = headersList.get('x-pathname') ?? ''
 
   const isDashboard = pathname === '/dashboard'
+
+  let isVip = false
+  if (user) {
+    const serviceClient = createServiceClient()
+    const { data: profile } = await serviceClient
+      .from('profiles')
+      .select('is_vip')
+      .eq('user_id', user.id)
+      .single()
+    isVip = profile?.is_vip === true
+  }
 
   return (
     <header className="border-b bg-background">
@@ -24,6 +36,11 @@ export async function Header() {
           <ThemeToggle />
           {user ? (
             <>
+              {isVip && (
+                <Badge className="bg-amber-500/15 text-amber-500 border-amber-500/30 text-xs px-2 py-0.5">
+                  ⭐ VIP
+                </Badge>
+              )}
               <Link href="/dashboard">
                 <Button
                   variant={isDashboard ? 'default' : 'ghost'}
