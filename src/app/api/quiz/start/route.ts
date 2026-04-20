@@ -54,12 +54,22 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Verificar VIP
+  const { data: profile } = await serviceClient
+    .from('profiles')
+    .select('is_vip')
+    .eq('user_id', user.id)
+    .single()
+
+  const isVip = profile?.is_vip === true
+
   // Selecionar questões (sem correct_answer no retorno)
   const questionsWithAnswer = await selectQuestionsForBlock(
     serviceClient,
     user.id,
     level,
-    block
+    block,
+    isVip
   )
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

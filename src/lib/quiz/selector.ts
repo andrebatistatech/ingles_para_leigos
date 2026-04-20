@@ -62,34 +62,40 @@ export async function selectQuestionsForBlock(
   supabase: SupabaseClient,
   userId: string,
   level: CEFRLevel,
-  difficulty: Difficulty
+  difficulty: Difficulty,
+  isVip: boolean = false
 ): Promise<QuestionWithAnswer[]> {
   const answeredIds = await getAnsweredIds(supabase, userId, level, difficulty)
 
-  // Buscar questões novas (excluindo já respondidas)
-  let mcQuestions = await fetchQuestions(supabase, level, difficulty, 'multiple_choice', answeredIds, 8)
-  let essayQuestions = await fetchQuestions(supabase, level, difficulty, 'essay', answeredIds, 2)
+  // Non-VIP: 10 MC only. VIP: 8 MC + 2 essay.
+  const mcCount = 10
+  const essayCount = isVip ? 2 : 0
+  const mcTarget = isVip ? 8 : 10
 
-  // Se insuficiente, completar com as mais antigas (permit repetition)
-  if (mcQuestions.length < 8) {
-    const extra = await fetchQuestions(supabase, level, difficulty, 'multiple_choice', [], 8)
+  let mcQuestions = await fetchQuestions(supabase, level, difficulty, 'multiple_choice', answeredIds, mcTarget)
+
+  if (mcQuestions.length < mcTarget) {
+    const extra = await fetchQuestions(supabase, level, difficulty, 'multiple_choice', [], mcTarget)
     const newIds = new Set(mcQuestions.map(q => q.id))
     const oldest = extra.filter(q => !newIds.has(q.id))
-    mcQuestions = [...mcQuestions, ...oldest].slice(0, 8)
+    mcQuestions = [...mcQuestions, ...oldest].slice(0, mcTarget)
   }
 
-  if (essayQuestions.length < 2) {
-    const extra = await fetchQuestions(supabase, level, difficulty, 'essay', [], 2)
+  if (!isVip) {
+    return shuffle(mcQuestions).slice(0, mcCount)
+  }
+
+  let essayQuestions = await fetchQuestions(supabase, level, difficulty, 'essay', answeredIds, essayCount)
+
+  if (essayQuestions.length < essayCount) {
+    const extra = await fetchQuestions(supabase, level, difficulty, 'essay', [], essayCount)
     const newIds = new Set(essayQuestions.map(q => q.id))
     const oldest = extra.filter(q => !newIds.has(q.id))
-    essayQuestions = [...essayQuestions, ...oldest].slice(0, 2)
+    essayQuestions = [...essayQuestions, ...oldest].slice(0, essayCount)
   }
 
-  // Sortear dentro de cada tipo e combinar
-  const selected = [
+  return shuffle([
     ...shuffle(mcQuestions).slice(0, 8),
     ...shuffle(essayQuestions).slice(0, 2),
-  ]
-
-  return shuffle(selected)
+  ])
 }
