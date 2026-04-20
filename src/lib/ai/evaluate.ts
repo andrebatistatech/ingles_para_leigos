@@ -49,26 +49,14 @@ async function callModel(
 ): Promise<EvaluationResult> {
   const { text } = await generateText({
     model: anthropic('claude-sonnet-4-6'),
+    system: SYSTEM_PROMPT,
     messages: [
       {
         role: 'user',
-        content: [
-          {
-            type: 'text',
-            text: SYSTEM_PROMPT,
-            // Cache the system prompt — reused across evaluations in a session
-            experimental_providerMetadata: {
-              anthropic: { cacheControl: { type: 'ephemeral' } },
-            },
-          },
-          {
-            type: 'text',
-            text: `Level: ${level} (CEFR)
+        content: `Level: ${level} (CEFR)
 <question>${questionText}</question>
 <expected_answer>${correctAnswerExample}</expected_answer>
 <student_answer>${studentAnswer}</student_answer>`,
-          },
-        ],
       },
     ],
   })
