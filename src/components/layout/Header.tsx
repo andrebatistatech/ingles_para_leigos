@@ -16,15 +16,19 @@ export async function Header() {
 
   let isVip = false
   let isAdmin = false
+  let fullName: string | null = null
+  let avatarUrl: string | null = null
   if (user) {
     const serviceClient = createServiceClient()
     const { data: profile } = await serviceClient
       .from('profiles')
-      .select('is_vip, is_admin')
+      .select('is_vip, is_admin, full_name, avatar_url')
       .eq('user_id', user.id)
       .single()
     isVip = profile?.is_vip === true
     isAdmin = profile?.is_admin === true
+    fullName = profile?.full_name ?? null
+    avatarUrl = profile?.avatar_url ?? null
   }
 
   return (
@@ -61,6 +65,22 @@ export async function Header() {
                   Novo Quiz
                 </Button>
               </Link>
+              {/* Avatar + nome */}
+              <div className="flex items-center gap-2 px-1">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover" />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-semibold">
+                    {(fullName ?? user.email ?? '?')[0].toUpperCase()}
+                  </div>
+                )}
+                {fullName && (
+                  <span className="hidden sm:block text-sm text-text-main font-medium max-w-[120px] truncate">
+                    {fullName.split(' ')[0]}
+                  </span>
+                )}
+              </div>
+
               {isAdmin && (
                 <Link href="/admin">
                   <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-text-main">
