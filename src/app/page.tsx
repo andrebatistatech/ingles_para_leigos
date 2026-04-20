@@ -84,7 +84,7 @@ export default function HomePage() {
                 </li>
               ))}
             </ul>
-            <Link href="/login" className="mt-6">
+            <Link href="/upgrade" className="mt-6">
               <Button className="w-full bg-amber-500 hover:bg-amber-500/90 text-white">
                 Quero ser VIP
               </Button>
