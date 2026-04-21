@@ -23,6 +23,7 @@ export default function QuizPage() {
     currentFeedback,
     answered,
     loadError,
+    lastUserAnswer,
     blockElapsed,
     blockScore,
     loadBlock,
@@ -111,6 +112,10 @@ export default function QuizPage() {
           <FeedbackPanel
             feedback={currentFeedback}
             onNext={handleNext}
+            questionText={question.question_text}
+            userAnswer={lastUserAnswer}
+            level={level}
+            sessionId={sessionId}
             nextLabel={
               block.currentIndex + 1 >= block.questions.length
                 ? `Ver resultado do Bloco ${currentBlock}`

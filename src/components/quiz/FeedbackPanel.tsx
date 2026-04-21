@@ -3,15 +3,20 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorExplanation } from '@/components/quiz/ErrorExplanation'
 import type { AnswerFeedback } from '@/types'
 
 interface Props {
   feedback: AnswerFeedback
   onNext: () => void
   nextLabel?: string
+  questionText?: string
+  userAnswer?: string | null
+  level?: string
+  sessionId?: string
 }
 
-export function FeedbackPanel({ feedback, onNext, nextLabel = 'Próxima questão' }: Props) {
+export function FeedbackPanel({ feedback, onNext, nextLabel = 'Próxima questão', questionText, userAnswer, level, sessionId }: Props) {
   const [aiFeedback, setAiFeedback] = useState<string | null>(feedback.ai_feedback ?? null)
   const [polling, setPolling] = useState(feedback.pending === true)
   const isVipRequired = feedback.vip_required === true
@@ -44,7 +49,7 @@ export function FeedbackPanel({ feedback, onNext, nextLabel = 'Próxima questão
   }, [feedback.pending, feedback.answerId])
 
   const isCorrect = feedback.is_correct
-  const isEssay = feedback.pending === true || isVipRequired
+  const isEssay = feedback.pending === true || (isVipRequired && feedback.is_correct === null)
 
   return (
     <div className="rounded-xl border bg-card p-5 shadow-sm space-y-4 animate-slide-up">
@@ -85,6 +90,17 @@ export function FeedbackPanel({ feedback, onNext, nextLabel = 'Próxima questão
         <p className="font-medium text-warning">💡 Dica de estudo</p>
         <p className="mt-1 text-muted-foreground">{feedback.study_tip}</p>
       </div>
+
+      {/* Explicação IA para MC incorreto */}
+      {!isEssay && isCorrect === false && questionText && level && sessionId && (
+        <ErrorExplanation
+          questionText={questionText}
+          userAnswer={userAnswer ?? null}
+          correctAnswer={feedback.correct_answer}
+          level={level}
+          sessionId={sessionId}
+        />
+      )}
 
       {/* Feedback da IA (essays) */}
       {isEssay && (

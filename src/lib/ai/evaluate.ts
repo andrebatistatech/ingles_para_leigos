@@ -48,7 +48,7 @@ async function callModel(
   studentAnswer: string
 ): Promise<EvaluationResult> {
   const { text } = await generateText({
-    model: openai('gpt-4o-mini'),
+    model: openai('gpt-4.1-nano'),
     system: SYSTEM_PROMPT,
     messages: [
       {

@@ -28,6 +28,7 @@ export function useQuizEngine({ sessionId, level }: UseQuizEngineOptions) {
   const [currentFeedback, setCurrentFeedback] = useState<AnswerFeedback | null>(null)
   const [answered, setAnswered] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [lastUserAnswer, setLastUserAnswer] = useState<string | null>(null)
   const blockStartRef = useRef<number>(Date.now())
 
   const loadBlock = useCallback(async (blockNum: Difficulty) => {
@@ -75,6 +76,7 @@ export function useQuizEngine({ sessionId, level }: UseQuizEngineOptions) {
   const handleAnswer = useCallback(async (answer: string | null) => {
     if (!block || answered) return
     setAnswered(true)
+    setLastUserAnswer(answer)
 
     const question = block.questions[block.currentIndex]
     const res = await fetch('/api/quiz/answer', {
@@ -139,6 +141,7 @@ export function useQuizEngine({ sessionId, level }: UseQuizEngineOptions) {
     currentFeedback,
     answered,
     loadError,
+    lastUserAnswer,
     blockElapsed,
     blockScore,
 
