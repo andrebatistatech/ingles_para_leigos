@@ -68,6 +68,7 @@ export function LevelSelector({ levels, countByLevel }: Props) {
             key={level}
             onClick={() => startQuiz(level)}
             disabled={loading !== null}
+            aria-label={`Nível ${level} — ${label}: ${desc}`}
             className={`rounded-xl border-2 bg-card p-5 text-left shadow-sm transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 ${LEVEL_COLORS[level]}`}
           >
             <div className="mb-2 flex items-center justify-between">

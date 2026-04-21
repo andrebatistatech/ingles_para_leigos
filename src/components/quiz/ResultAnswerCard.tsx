@@ -46,6 +46,8 @@ export function ResultAnswerCard({
       <button
         className="w-full flex items-center gap-3 p-3 text-left"
         onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        aria-controls={`answer-detail-${index}`}
       >
         <span className={`text-base font-semibold ${statusColor.split(' ')[0]}`}>{statusIcon}</span>
         <div className="flex-1 min-w-0">
@@ -61,7 +63,7 @@ export function ResultAnswerCard({
       </button>
 
       {open && (
-        <div className="px-3 pb-3 space-y-3 border-t pt-3">
+        <div id={`answer-detail-${index}`} className="px-3 pb-3 space-y-3 border-t pt-3 animate-fade-in">
           {/* Resposta do usuário */}
           {userAnswer && (
             <div className="text-sm">

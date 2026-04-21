@@ -47,7 +47,7 @@ export function FeedbackPanel({ feedback, onNext, nextLabel = 'Próxima questão
   const isEssay = feedback.pending === true || isVipRequired
 
   return (
-    <div className="rounded-xl border bg-card p-5 shadow-sm space-y-4">
+    <div className="rounded-xl border bg-card p-5 shadow-sm space-y-4 animate-slide-up">
       {/* Resultado */}
       {!isEssay && (
         <div className={`flex items-center gap-2 font-semibold ${isCorrect ? 'text-success' : 'text-error'}`}>

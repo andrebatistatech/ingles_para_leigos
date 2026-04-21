@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Button } from '@/components/ui/button'
 import type { AnswerFeedback, Difficulty } from '@/types'
 
@@ -23,14 +24,14 @@ function formatTime(s: number) {
   return m > 0 ? `${m}m ${sec}s` : `${sec}s`
 }
 
-export function BlockResult({ blockNumber, score, feedbacks, timeSeconds, onContinue }: Props) {
+export const BlockResult = memo(function BlockResult({ blockNumber, score, feedbacks, timeSeconds, onContinue }: Props) {
   const isLast = blockNumber === 3
 
   return (
-    <div className="mx-auto max-w-lg space-y-6 py-8">
+    <div className="mx-auto max-w-lg space-y-6 py-8 animate-fade-in">
       <div className="text-center">
         <p className="text-sm text-muted-foreground">Bloco {blockNumber} — {BLOCK_NAMES[blockNumber]}</p>
-        <p className={`mt-2 text-6xl font-bold ${scoreColor(score)}`}>
+        <p className={`mt-2 text-6xl font-bold animate-scale-in ${scoreColor(score)}`}>
           {score.toFixed(0)}
         </p>
         <p className="text-sm text-muted-foreground">pontos</p>
@@ -39,7 +40,10 @@ export function BlockResult({ blockNumber, score, feedbacks, timeSeconds, onCont
 
       <div className="space-y-2">
         {feedbacks.map((f, i) => (
-          <div key={i} className="flex items-center gap-3 rounded-lg border bg-card p-3">
+          <div
+            key={i}
+            className={`flex items-center gap-3 rounded-lg border bg-card p-3 animate-slide-up animate-option-${i + 1}`}
+          >
             <span className={`text-lg ${f.is_correct ? 'text-success' : f.is_correct === null ? 'text-primary' : 'text-error'}`}>
               {f.is_correct ? '✓' : f.is_correct === null ? '✍️' : '✗'}
             </span>
@@ -57,4 +61,4 @@ export function BlockResult({ blockNumber, score, feedbacks, timeSeconds, onCont
       </Button>
     </div>
   )
-}
+})
