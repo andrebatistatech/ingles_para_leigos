@@ -35,3 +35,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 imagens_testes/
+
+# claude local
+.claude/worktrees/
+
+# scratch / one-off scripts (contain secrets, not part of project)
+vps_*.py
+check_oauth*.py
+extract_schema.py
+scripts/metabase_reader_user.sql
