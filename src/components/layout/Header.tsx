@@ -65,6 +65,13 @@ export async function Header() {
                   Novo Quiz
                 </Button>
               </Link>
+              {isVip && (
+                <Link href="/estudar">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-text-main">
+                    Estudar
+                  </Button>
+                </Link>
+              )}
               {/* Avatar + nome → minha conta */}
               <Link href="/conta" className="flex items-center gap-2 px-1 rounded-md hover:bg-muted/40 transition-colors" title="Minha conta">
                 {avatarUrl ? (

@@ -90,3 +90,49 @@ export interface QuizHistoryItem {
   started_at: string
   finished_at: string | null
 }
+
+// ── Módulo de Estudo (VIP) ──────────────────────────────────────────────
+export type StudyCategory = 'grammar' | 'expressions'
+
+export interface LessonExample {
+  en: string
+  pt: string
+}
+
+export interface StudyTopic {
+  id: string
+  level: CEFRLevel
+  slug: string
+  title: string
+  category: StudyCategory
+  sort_order: number
+  question_topics: string[]
+  explanation: string | null
+  examples: LessonExample[] | null
+  content_generated_at: string | null
+}
+
+export interface StudyProgress {
+  id: string
+  user_id: string
+  topic_id: string
+  lesson_studied_at: string | null
+  exercises_done: number
+  exercises_correct: number
+  best_score: number | null
+  last_practiced_at: string | null
+}
+
+// Tópico + progresso do usuário, para o hub de estudo
+export interface StudyTopicWithProgress extends StudyTopic {
+  studied: boolean
+  exercisesDone: number
+  bestScore: number | null
+}
+
+// Retorno de /api/study/practice/start (sem correct_answer)
+export interface PracticeStartResponse {
+  topicId: string
+  title: string
+  questions: Question[]
+}
