@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { StatsCards } from '@/components/dashboard/StatsCards'
 import { ScoreChart } from '@/components/dashboard/ScoreChart'
 import { QuizHistory } from '@/components/dashboard/QuizHistory'
+import { WeakTopics, type WeakTopic } from '@/components/dashboard/WeakTopics'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -55,6 +56,38 @@ export default async function DashboardPage() {
       level: s.level,
     }))
 
+  // Pontos fracos (VIP): média de score por tópico
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_vip')
+    .eq('user_id', user.id)
+    .single()
+  const isVip = profile?.is_vip === true
+
+  let weakTopics: WeakTopic[] = []
+  if (isVip && completed.length > 0) {
+    const { data: answers } = await supabase
+      .from('quiz_answers')
+      .select('score, question:questions(topic)')
+      .in('session_id', completed.map(s => s.id))
+
+    const byTopic = new Map<string, { sum: number; count: number }>()
+    for (const a of answers ?? []) {
+      const topic = (a.question as { topic?: string } | null)?.topic
+      if (!topic) continue
+      const acc = byTopic.get(topic) ?? { sum: 0, count: 0 }
+      acc.sum += a.score ?? 0
+      acc.count += 1
+      byTopic.set(topic, acc)
+    }
+
+    weakTopics = Array.from(byTopic.entries())
+      .map(([topic, { sum, count }]) => ({ topic, count, avgScore: sum / count }))
+      .filter(t => t.count >= 2)
+      .sort((a, b) => a.avgScore - b.avgScore)
+      .slice(0, 5)
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 space-y-8">
       <div className="flex items-center justify-between">
@@ -76,6 +109,8 @@ export default async function DashboardPage() {
       />
 
       <ScoreChart data={chartData} />
+
+      <WeakTopics topics={weakTopics} isVip={isVip} />
 
       <div>
         <h2 className="mb-4 font-semibold text-text-main">Histórico</h2>

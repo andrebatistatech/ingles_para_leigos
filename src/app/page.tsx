@@ -14,7 +14,9 @@ const FREE_FEATURES = [
 const VIP_FEATURES = [
   'Tudo do plano grátis',
   '2 questões de redação por bloco',
-  'Correção de redações por IA (GPT-4)',
+  'Correção de redações por IA',
+  'Explicação dos seus erros por IA (PT/EN)',
+  'Relatório dos seus pontos fracos por tópico',
   'Feedback personalizado por nível CEFR',
   'Badge ⭐ VIP exclusivo',
 ]
@@ -119,7 +121,7 @@ export default function HomePage() {
         {[
           { icon: '🎯', title: '30 questões por quiz', desc: '3 blocos de dificuldade progressiva' },
           { icon: '⏱️', title: 'Timer por questão', desc: '60s para múltipla escolha, 120s para redações' },
-          { icon: '🤖', title: 'IA avalia redações', desc: 'Feedback personalizado por GPT-4 (VIP)' },
+          { icon: '🤖', title: 'IA avalia redações', desc: 'Feedback personalizado por IA (VIP)' },
         ].map(({ icon, title, desc }) => (
           <div key={title} className="rounded-xl border bg-card p-5 text-center shadow-sm">
             <div className="mb-2 text-3xl">{icon}</div>

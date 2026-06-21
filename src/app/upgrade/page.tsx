@@ -30,7 +30,7 @@ export default async function UpgradePage() {
         <span className="text-4xl">⭐</span>
         <h1 className="mt-3 text-3xl font-bold text-text-main">Seja VIP</h1>
         <p className="mt-2 text-muted-foreground">
-          VIPs têm acesso a questões de redação com correção por IA (GPT-4).
+          VIPs têm acesso a questões de redação com correção por IA.
         </p>
       </div>
 
@@ -39,7 +39,9 @@ export default async function UpgradePage() {
         <ul className="space-y-2">
           {[
             '2 questões de redação por bloco (6 por quiz)',
-            'Correção automática por GPT-4',
+            'Correção automática de redações por IA',
+            'Explicação dos seus erros por IA (PT/EN)',
+            'Relatório dos seus pontos fracos por tópico',
             'Feedback personalizado por nível CEFR',
             'Badge ⭐ VIP exclusivo no header',
           ].map(b => (
