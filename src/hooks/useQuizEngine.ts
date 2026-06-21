@@ -125,6 +125,49 @@ export function useQuizEngine({ sessionId, level }: UseQuizEngineOptions) {
     }
   }, [currentBlock, router, sessionId, loadBlock])
 
+  // Ao chegar no resultado do bloco, resolver as notas dos essays avaliados de
+  // forma assíncrona (o feedback inicial vem com score null / pending).
+  useEffect(() => {
+    if (phase !== 'block_result' || !block) return
+    const pendingIds = block.feedbacks
+      .map((f, i) => ({ i, id: f.answerId, pending: f.score === null && f.vip_required !== true }))
+      .filter(p => p.pending && p.id) as { i: number; id: string }[]
+    if (pendingIds.length === 0) return
+
+    let attempts = 0
+    const remaining = new Set(pendingIds.map(p => p.i))
+
+    const interval = setInterval(async () => {
+      attempts++
+      await Promise.all(
+        Array.from(remaining).map(async i => {
+          const id = pendingIds.find(p => p.i === i)!.id
+          try {
+            const res = await fetch(`/api/quiz/evaluate?answerId=${id}`)
+            const data = await res.json()
+            if (!data.pending && typeof data.score === 'number') {
+              remaining.delete(i)
+              setBlock(prev =>
+                prev
+                  ? {
+                      ...prev,
+                      feedbacks: prev.feedbacks.map((f, idx) =>
+                        idx === i ? { ...f, score: data.score, pending: false } : f
+                      ),
+                    }
+                  : prev
+              )
+            }
+          } catch { /* tentar de novo */ }
+        })
+      )
+      if (remaining.size === 0 || attempts >= 10) clearInterval(interval)
+    }, 2000)
+
+    return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase])
+
   // Derived values
   const question = block?.questions[block.currentIndex] ?? null
   const blockElapsed = Math.round((Date.now() - blockStartRef.current) / 1000)

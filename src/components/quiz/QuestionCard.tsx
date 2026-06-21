@@ -48,6 +48,12 @@ export const QuestionCard = memo(function QuestionCard({ question, onAnswer, dis
       <p className="text-lg font-medium text-text-main leading-relaxed">
         {question.question_text}
       </p>
+      {question.study_tip && (
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm">
+          <p className="font-medium text-primary">💡 Dica de formato</p>
+          <p className="mt-0.5 text-muted-foreground">{question.study_tip}</p>
+        </div>
+      )}
       <Textarea
         value={essay}
         onChange={e => setEssay(e.target.value)}

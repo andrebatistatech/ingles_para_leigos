@@ -163,6 +163,8 @@ export async function POST(request: NextRequest) {
       evaluateAndUpdate(
         serviceClient,
         inserted.id,
+        sessionId,
+        blockNumber,
         session.level,
         question.question_text,
         question.correct_answer,
@@ -210,6 +212,8 @@ export async function POST(request: NextRequest) {
 async function evaluateAndUpdate(
   supabase: ReturnType<typeof createServiceClient>,
   answerId: string,
+  sessionId: string,
+  blockNumber: Difficulty,
   level: string,
   questionText: string,
   correctAnswer: string,
@@ -234,11 +238,56 @@ async function evaluateAndUpdate(
         }),
       })
       .eq('id', answerId)
+
+    // A nota do essay chegou depois do bloco fechar: recalcular bloco + total
+    await recomputeScores(supabase, sessionId, blockNumber)
   } else {
     console.error('[evaluateAndUpdate] evaluation failed for answerId:', answerId)
     await supabase
       .from('quiz_answers')
       .update({ ai_feedback: 'evaluation_failed' })
       .eq('id', answerId)
+  }
+}
+
+// Recalcula o score do bloco (e o total, se a sessão já estiver completa) a partir
+// das notas atuais no banco — necessário porque essays são avaliados de forma assíncrona.
+async function recomputeScores(
+  supabase: ReturnType<typeof createServiceClient>,
+  sessionId: string,
+  blockNumber: Difficulty
+) {
+  const { data: blockAnswers } = await supabase
+    .from('quiz_answers')
+    .select('score')
+    .eq('session_id', sessionId)
+    .eq('block_number', blockNumber)
+
+  const blockScore = calculateBlockScore(
+    (blockAnswers ?? []).map((a: { score: number }) => a.score)
+  )
+
+  await supabase
+    .from('quiz_sessions')
+    .update({ [`block_${blockNumber}_score`]: blockScore })
+    .eq('id', sessionId)
+
+  // Se a sessão já terminou, recalcular o total com o bloco atualizado
+  const { data: sess } = await supabase
+    .from('quiz_sessions')
+    .select('status, block_1_score, block_2_score, block_3_score')
+    .eq('id', sessionId)
+    .single()
+
+  if (sess?.status === 'completed') {
+    const totalScore = calculateTotalScore(
+      sess.block_1_score ?? 0,
+      sess.block_2_score ?? 0,
+      sess.block_3_score ?? 0
+    )
+    await supabase
+      .from('quiz_sessions')
+      .update({ total_score: totalScore })
+      .eq('id', sessionId)
   }
 }
