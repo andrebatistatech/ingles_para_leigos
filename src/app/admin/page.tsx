@@ -17,7 +17,7 @@ export default async function AdminPage() {
 
   if (!profile?.is_admin) redirect('/dashboard')
 
-  const [{ data: profiles }, { data: requests }] = await Promise.all([
+  const [{ data: profiles }, { data: requests }, { data: authData }] = await Promise.all([
     serviceClient
       .from('profiles')
       .select('id, user_id, full_name, avatar_url, is_vip, is_admin, created_at')
@@ -26,7 +26,14 @@ export default async function AdminPage() {
       .from('vip_requests')
       .select('id, full_name, email, message, status, created_at')
       .order('created_at', { ascending: false }),
+    serviceClient.auth.admin.listUsers({ perPage: 1000 }),
   ])
+
+  const emailById = new Map((authData?.users ?? []).map(u => [u.id, u.email ?? null]))
+  const usersWithEmail = (profiles ?? []).map(p => ({
+    ...p,
+    email: emailById.get(p.user_id) ?? null,
+  }))
 
   const pending = (requests ?? []).filter((r: { status: string }) => r.status === 'pending')
 
@@ -66,7 +73,7 @@ export default async function AdminPage() {
       {/* Usuários */}
       <div className="space-y-3">
         <h2 className="font-semibold text-text-main">Usuários</h2>
-        <AdminUsersTable users={profiles ?? []} />
+        <AdminUsersTable users={usersWithEmail} />
       </div>
     </div>
   )

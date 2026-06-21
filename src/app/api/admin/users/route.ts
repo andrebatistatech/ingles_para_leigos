@@ -21,12 +21,21 @@ export async function GET() {
   const serviceClient = await requireAdmin()
   if (!serviceClient) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { data: profiles } = await serviceClient
-    .from('profiles')
-    .select('id, user_id, full_name, avatar_url, is_vip, is_admin, created_at')
-    .order('created_at', { ascending: false })
+  const [{ data: profiles }, { data: authData }] = await Promise.all([
+    serviceClient
+      .from('profiles')
+      .select('id, user_id, full_name, avatar_url, is_vip, is_admin, created_at')
+      .order('created_at', { ascending: false }),
+    serviceClient.auth.admin.listUsers({ perPage: 1000 }),
+  ])
 
-  return NextResponse.json({ users: profiles ?? [] })
+  const emailById = new Map((authData?.users ?? []).map(u => [u.id, u.email ?? null]))
+  const users = (profiles ?? []).map(p => ({
+    ...p,
+    email: emailById.get(p.user_id) ?? null,
+  }))
+
+  return NextResponse.json({ users })
 }
 
 export async function PATCH(request: NextRequest) {

@@ -34,7 +34,7 @@ export function SignUpForm() {
   async function onSubmit(data: FormData) {
     setLoading(true)
     setError(null)
-    const { error } = await supabase.auth.signUp({
+    const { data: result, error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: {
@@ -43,11 +43,20 @@ export function SignUpForm() {
       },
     })
     if (error) {
-      setError(error.message)
+      // Confirmação de email desligada: Supabase retorna "User already registered"
+      setError(/already registered/i.test(error.message)
+        ? 'Este email já está cadastrado.'
+        : error.message)
       setLoading(false)
-    } else {
-      setSuccess(true)
+      return
     }
+    // Confirmação de email ligada: email existente vem com identities vazio (sem erro)
+    if (result.user && (result.user.identities?.length ?? 0) === 0) {
+      setError('Este email já está cadastrado.')
+      setLoading(false)
+      return
+    }
+    setSuccess(true)
   }
 
   if (success) {

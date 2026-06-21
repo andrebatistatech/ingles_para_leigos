@@ -2,7 +2,7 @@ import { updateSession } from '@/lib/supabase/middleware'
 import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 
-const AUTH_ROUTES = ['/dashboard', '/quiz']
+const AUTH_ROUTES = ['/dashboard', '/quiz', '/conta']
 
 export async function middleware(request: NextRequest) {
   const { response, user } = await updateSession(request)

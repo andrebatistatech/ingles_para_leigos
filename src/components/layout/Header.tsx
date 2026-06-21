@@ -65,8 +65,8 @@ export async function Header() {
                   Novo Quiz
                 </Button>
               </Link>
-              {/* Avatar + nome */}
-              <div className="flex items-center gap-2 px-1">
+              {/* Avatar + nome → minha conta */}
+              <Link href="/conta" className="flex items-center gap-2 px-1 rounded-md hover:bg-muted/40 transition-colors" title="Minha conta">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover" />
                 ) : (
@@ -79,7 +79,7 @@ export async function Header() {
                     {fullName.split(' ')[0]}
                   </span>
                 )}
-              </div>
+              </Link>
 
               {isAdmin && (
                 <Link href="/admin">

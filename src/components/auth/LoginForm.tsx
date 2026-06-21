@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -68,6 +69,12 @@ export function LoginForm() {
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? 'Entrando...' : 'Entrar'}
       </Button>
+
+      <p className="text-center text-xs">
+        <Link href="/recuperar-senha" className="text-muted-foreground hover:text-primary hover:underline">
+          Esqueci minha senha
+        </Link>
+      </p>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">

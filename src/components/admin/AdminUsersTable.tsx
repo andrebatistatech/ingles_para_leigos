@@ -7,6 +7,7 @@ interface UserRow {
   id: string
   user_id: string
   full_name: string | null
+  email: string | null
   avatar_url: string | null
   is_vip: boolean
   is_admin: boolean
@@ -62,7 +63,10 @@ export function AdminUsersTable({ users: initial }: Props) {
                       {(u.full_name ?? '?')[0].toUpperCase()}
                     </div>
                   )}
-                  <span className="text-text-main">{u.full_name ?? '(sem nome)'}</span>
+                  <div className="flex flex-col">
+                    <span className="text-text-main">{u.full_name ?? '(sem nome)'}</span>
+                    <span className="text-xs text-muted-foreground">{u.email ?? '—'}</span>
+                  </div>
                 </div>
               </td>
               <td className="px-4 py-3 text-muted-foreground">
