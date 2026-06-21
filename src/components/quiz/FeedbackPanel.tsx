@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorExplanation } from '@/components/quiz/ErrorExplanation'
+import { EssayFeedbackContent } from '@/components/quiz/EssayFeedbackContent'
 import type { AnswerFeedback } from '@/types'
 
 interface Props {
@@ -124,7 +125,7 @@ export function FeedbackPanel({ feedback, onNext, nextLabel = 'Próxima questão
               <p className="text-xs text-muted-foreground">Avaliando sua resposta...</p>
             </div>
           ) : aiFeedback ? (
-            <p className="text-muted-foreground whitespace-pre-line">{aiFeedback}</p>
+            <EssayFeedbackContent raw={aiFeedback} />
           ) : (
             <p className="text-muted-foreground">Avaliação indisponível no momento.</p>
           )}

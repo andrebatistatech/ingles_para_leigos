@@ -225,7 +225,14 @@ async function evaluateAndUpdate(
   if (result) {
     await supabase
       .from('quiz_answers')
-      .update({ score: result.score, ai_feedback: `${result.feedback}\n\n💡 ${result.suggestion}` })
+      .update({
+        score: result.score,
+        ai_feedback: JSON.stringify({
+          correction: result.correction,
+          explanation_en: result.explanation_en,
+          explanation_pt: result.explanation_pt,
+        }),
+      })
       .eq('id', answerId)
   } else {
     console.error('[evaluateAndUpdate] evaluation failed for answerId:', answerId)

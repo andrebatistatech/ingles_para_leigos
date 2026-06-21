@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { EssayFeedbackContent } from '@/components/quiz/EssayFeedbackContent'
 
 interface Props {
   index: number
@@ -107,8 +108,8 @@ export function ResultAnswerCard({
               {isFailed && (
                 <p className="text-muted-foreground">Avaliação indisponível.</p>
               )}
-              {hasRealFeedback && (
-                <p className="text-muted-foreground whitespace-pre-line">{aiFeedback}</p>
+              {hasRealFeedback && aiFeedback && (
+                <EssayFeedbackContent raw={aiFeedback} />
               )}
               {!aiFeedback && !isVipRequired && !isFailed && (
                 <p className="text-muted-foreground">Avaliação pendente.</p>

@@ -4,8 +4,9 @@ import type { CEFRLevel } from '@/types'
 
 export interface EvaluationResult {
   score: number
-  feedback: string
-  suggestion: string
+  correction: string
+  explanation_en: string
+  explanation_pt: string
 }
 
 const SYSTEM_PROMPT = `You are an English teacher grading a student's written answer for a CEFR-leveled quiz.
@@ -27,10 +28,14 @@ Calibrate expectations to the student's CEFR level (A1 lowest, C2 highest): the 
 higher score at A1 than at C1.
 
 Return ONLY a valid JSON object, no markdown, no text before or after, with this exact shape:
-{"score": <integer 0-100>, "feedback": "<2-3 sentences of educational feedback>", "suggestion": "<one specific, actionable improvement tip>"}
+{
+  "score": <integer 0-100>,
+  "correction": "<the student's answer rewritten correctly in natural English, keeping their original meaning. If it was already correct, repeat it.>",
+  "explanation_en": "<simple, encouraging explanation IN ENGLISH of what was wrong and why, in plain words a learner understands. 2-3 short sentences. Point to the specific mistakes.>",
+  "explanation_pt": "<the SAME explanation translated to Brazilian Portuguese, simple and clear.>"
+}
 
-Be encouraging but honest. Explain errors in simple terms appropriate for the student's level.
-Always respond in English.`
+Be encouraging but honest. Keep the language simple and appropriate for the student's level.`
 
 export async function evaluateEssay(
   level: CEFRLevel,
@@ -78,7 +83,8 @@ async function callModel(
   const parsed = JSON.parse(match[0])
   return {
     score: Math.max(0, Math.min(100, Number(parsed.score))),
-    feedback: String(parsed.feedback),
-    suggestion: String(parsed.suggestion),
+    correction: String(parsed.correction ?? ''),
+    explanation_en: String(parsed.explanation_en ?? ''),
+    explanation_pt: String(parsed.explanation_pt ?? ''),
   }
 }
