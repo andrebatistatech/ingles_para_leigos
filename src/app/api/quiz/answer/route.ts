@@ -280,11 +280,12 @@ async function recomputeScores(
     .single()
 
   if (sess?.status === 'completed') {
-    const totalScore = calculateTotalScore(
-      sess.block_1_score ?? 0,
-      sess.block_2_score ?? 0,
-      sess.block_3_score ?? 0
-    )
+    // Média dos blocos concluídos (quiz pode ter sido encerrado antes do bloco 3)
+    const blockScores = [sess.block_1_score, sess.block_2_score, sess.block_3_score]
+      .filter((s): s is number => s !== null)
+    const totalScore = blockScores.length
+      ? blockScores.reduce((a, b) => a + b, 0) / blockScores.length
+      : 0
     await supabase
       .from('quiz_sessions')
       .update({ total_score: totalScore })

@@ -8,6 +8,8 @@ interface Props {
   feedbacks: AnswerFeedback[]
   timeSeconds: number
   onContinue: () => void
+  onExit?: () => void
+  exiting?: boolean
 }
 
 const BLOCK_NAMES: Record<Difficulty, string> = { 1: 'Fácil', 2: 'Médio', 3: 'Difícil' }
@@ -24,7 +26,7 @@ function formatTime(s: number) {
   return m > 0 ? `${m}m ${sec}s` : `${sec}s`
 }
 
-export const BlockResult = memo(function BlockResult({ blockNumber, score, feedbacks, timeSeconds, onContinue }: Props) {
+export const BlockResult = memo(function BlockResult({ blockNumber, score, feedbacks, timeSeconds, onContinue, onExit, exiting = false }: Props) {
   const isLast = blockNumber === 3
 
   return (
@@ -56,9 +58,16 @@ export const BlockResult = memo(function BlockResult({ blockNumber, score, feedb
         ))}
       </div>
 
-      <Button onClick={onContinue} className="w-full bg-primary hover:bg-primary/90" size="lg">
-        {isLast ? 'Ver Resultado Final' : `Continuar para Bloco ${blockNumber + 1}`}
-      </Button>
+      <div className="space-y-2">
+        <Button onClick={onContinue} className="w-full bg-primary hover:bg-primary/90" size="lg">
+          {isLast ? 'Ver Resultado Final' : `Continuar para Bloco ${blockNumber + 1}`}
+        </Button>
+        {!isLast && onExit && (
+          <Button onClick={onExit} variant="outline" className="w-full" size="lg" disabled={exiting}>
+            {exiting ? 'Encerrando...' : 'Encerrar e voltar ao Dashboard'}
+          </Button>
+        )}
+      </div>
     </div>
   )
 })

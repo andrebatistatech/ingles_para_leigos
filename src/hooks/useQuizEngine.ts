@@ -125,6 +125,21 @@ export function useQuizEngine({ sessionId, level }: UseQuizEngineOptions) {
     }
   }, [currentBlock, router, sessionId, loadBlock])
 
+  const [finishing, setFinishing] = useState(false)
+
+  // Encerra o quiz no bloco atual e volta ao dashboard (marca como completo)
+  const finishEarly = useCallback(async () => {
+    setFinishing(true)
+    try {
+      await fetch('/api/quiz/finish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+      })
+    } catch { /* segue para o dashboard de qualquer forma */ }
+    router.push('/dashboard')
+  }, [sessionId, router])
+
   // Ao chegar no resultado do bloco, resolver as notas dos essays avaliados de
   // forma assíncrona (o feedback inicial vem com score null / pending).
   useEffect(() => {
@@ -188,10 +203,13 @@ export function useQuizEngine({ sessionId, level }: UseQuizEngineOptions) {
     blockElapsed,
     blockScore,
 
+    finishing,
+
     // Actions
     loadBlock,
     handleAnswer,
     handleNext,
     handleContinueBlock,
+    finishEarly,
   }
 }

@@ -26,10 +26,12 @@ export default function QuizPage() {
     lastUserAnswer,
     blockElapsed,
     blockScore,
+    finishing,
     loadBlock,
     handleAnswer,
     handleNext,
     handleContinueBlock,
+    finishEarly,
   } = useQuizEngine({ sessionId, level })
 
   if (phase === 'loading' && !loadError) {
@@ -74,6 +76,8 @@ export default function QuizPage() {
           feedbacks={block.feedbacks}
           timeSeconds={blockElapsed}
           onContinue={handleContinueBlock}
+          onExit={finishEarly}
+          exiting={finishing}
         />
       </div>
     )
