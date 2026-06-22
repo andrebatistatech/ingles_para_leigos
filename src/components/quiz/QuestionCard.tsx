@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import type { Question } from '@/types'
@@ -11,11 +11,26 @@ interface Props {
   disabled?: boolean
 }
 
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
 export const QuestionCard = memo(function QuestionCard({ question, onAnswer, disabled = false }: Props) {
   const [essay, setEssay] = useState('')
 
+  // Embaralha as opções uma vez por questão (o banco tende a deixar a correta na 1ª).
+  // A correção compara por valor, então reordenar a exibição é seguro.
+  const options = useMemo(
+    () => shuffle(question.options ?? []),
+    [question.id, question.options]
+  )
+
   if (question.type === 'multiple_choice') {
-    const options: string[] = question.options ?? []
     return (
       <div className="space-y-3">
         <p className="text-lg font-medium text-text-main leading-relaxed">
