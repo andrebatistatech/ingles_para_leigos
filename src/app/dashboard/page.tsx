@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -66,7 +66,8 @@ export default async function DashboardPage() {
 
   let weakTopics: WeakTopic[] = []
   if (isVip && completed.length > 0) {
-    const { data: answers } = await supabase
+    const serviceClient = createServiceClient()
+    const { data: answers } = await serviceClient
       .from('quiz_answers')
       .select('score, question:questions(topic)')
       .in('session_id', completed.map(s => s.id))

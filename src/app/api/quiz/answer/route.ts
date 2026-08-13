@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
   // Verificar que a sessão pertence ao usuário
   const { data: session } = await supabase
     .from('quiz_sessions')
-    .select('id, level, status')
+    .select('id, level, status, current_block')
     .eq('id', sessionId)
     .eq('user_id', user.id)
     .single()
@@ -48,15 +48,32 @@ export async function POST(request: NextRequest) {
   }
 
   // Buscar questão com correct_answer (service role)
+  if (session.status !== 'in_progress' || session.current_block !== blockNumber) {
+    return NextResponse.json({ error: 'Invalid session state' }, { status: 409 })
+  }
+
   const serviceClient = createServiceClient()
-  const { data: question } = await serviceClient
-    .from('questions')
-    .select('*')
-    .eq('id', questionId)
+  const { data: issuedQuestion } = await serviceClient
+    .from('quiz_session_questions')
+    .select('question:questions(*)')
+    .eq('session_id', sessionId)
+    .eq('block_number', blockNumber)
+    .eq('question_id', questionId)
     .single()
 
+  const question = (issuedQuestion as unknown as {
+    question: {
+      type: 'multiple_choice' | 'essay'
+      correct_answer: string
+      time_limit_seconds: number
+      explanation: string
+      study_tip: string
+      question_text: string
+    } | null
+  } | null)?.question
+
   if (!question) {
-    return NextResponse.json({ error: 'Question not found' }, { status: 404 })
+    return NextResponse.json({ error: 'Question was not issued for this block' }, { status: 403 })
   }
 
   // Validação server-side do timer (5s de tolerância para latência)
@@ -78,16 +95,8 @@ export async function POST(request: NextRequest) {
   const score = question.type === 'multiple_choice' ? (isCorrect ? 100 : 0) : 0
 
   // Contar respostas do bloco para detectar a 10ª questão
-  const { count } = await serviceClient
-    .from('quiz_answers')
-    .select('id', { count: 'exact', head: true })
-    .eq('session_id', sessionId)
-    .eq('block_number', blockNumber)
-
-  const answerCount = (count ?? 0) + 1 // inclui a atual
-
   // Inserir resposta
-  const { data: inserted } = await serviceClient
+  const { data: inserted, error: insertError } = await serviceClient
     .from('quiz_answers')
     .insert({
       session_id: sessionId,
@@ -102,8 +111,25 @@ export async function POST(request: NextRequest) {
     .select('id')
     .single()
 
+  if (insertError || !inserted) {
+    return NextResponse.json({ error: 'Question already answered' }, { status: 409 })
+  }
+
+  const [{ count: answerCount }, { count: issuedCount }] = await Promise.all([
+    serviceClient
+      .from('quiz_answers')
+      .select('id', { count: 'exact', head: true })
+      .eq('session_id', sessionId)
+      .eq('block_number', blockNumber),
+    serviceClient
+      .from('quiz_session_questions')
+      .select('id', { count: 'exact', head: true })
+      .eq('session_id', sessionId)
+      .eq('block_number', blockNumber),
+  ])
+
   // Se é a 10ª questão do bloco: calcular e salvar score do bloco
-  if (answerCount === 10) {
+  if (issuedCount && answerCount === issuedCount) {
     const { data: blockAnswers } = await serviceClient
       .from('quiz_answers')
       .select('score')
