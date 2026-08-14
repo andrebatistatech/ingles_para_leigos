@@ -63,41 +63,41 @@ export async function POST(request: NextRequest) {
     question_text: string
   }
 
-  const { data: issuedQuestion } = await serviceClient
+  // Verifica se questão foi emitida para esta sessão/bloco
+  const { data: issuedRow } = await serviceClient
     .from('quiz_session_questions')
-    .select('question:questions(*)')
+    .select('question_id')
     .eq('session_id', sessionId)
     .eq('block_number', blockNumber)
     .eq('question_id', questionId)
     .single()
 
-  let question = (issuedQuestion as unknown as { question: QuestionData | null } | null)?.question
-
-  // Fallback para sessões criadas antes da tabela quiz_session_questions existir
-  if (!question) {
+  // Sessões sem linhas em quiz_session_questions (criadas antes do sistema de emissão)
+  // são tratadas via fallback: valida que a questão pertence ao level/block correto
+  if (!issuedRow) {
     const { count: issuedCount } = await serviceClient
       .from('quiz_session_questions')
       .select('id', { count: 'exact', head: true })
       .eq('session_id', sessionId)
       .eq('block_number', blockNumber)
 
-    if ((issuedCount ?? 0) === 0) {
-      // Sessão antiga — busca questão diretamente validando level e block
-      const { data: directQuestion } = await serviceClient
-        .from('questions')
-        .select('type, correct_answer, time_limit_seconds, explanation, study_tip, question_text, level, difficulty')
-        .eq('id', questionId)
-        .single()
-
-      if (directQuestion && directQuestion.level === session.level && directQuestion.difficulty === blockNumber) {
-        question = directQuestion as QuestionData
-      }
+    if ((issuedCount ?? 0) > 0) {
+      return NextResponse.json({ error: 'Question was not issued for this block' }, { status: 403 })
     }
   }
 
-  if (!question) {
+  // Busca dados da questão diretamente (evita join PostgREST que depende de schema cache)
+  const { data: questionData } = await serviceClient
+    .from('questions')
+    .select('type, correct_answer, time_limit_seconds, explanation, study_tip, question_text, level, difficulty')
+    .eq('id', questionId)
+    .single()
+
+  if (!questionData || questionData.level !== session.level || questionData.difficulty !== blockNumber) {
     return NextResponse.json({ error: 'Question was not issued for this block' }, { status: 403 })
   }
+
+  const question = questionData as QuestionData
 
   // Validação server-side do timer (5s de tolerância para latência)
   const elapsed = Math.max(0, (Date.now() - new Date(questionStartedAt).getTime()) / 1000)
