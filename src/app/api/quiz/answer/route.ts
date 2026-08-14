@@ -53,6 +53,16 @@ export async function POST(request: NextRequest) {
   }
 
   const serviceClient = createServiceClient()
+
+  type QuestionData = {
+    type: 'multiple_choice' | 'essay'
+    correct_answer: string
+    time_limit_seconds: number
+    explanation: string
+    study_tip: string
+    question_text: string
+  }
+
   const { data: issuedQuestion } = await serviceClient
     .from('quiz_session_questions')
     .select('question:questions(*)')
@@ -61,16 +71,29 @@ export async function POST(request: NextRequest) {
     .eq('question_id', questionId)
     .single()
 
-  const question = (issuedQuestion as unknown as {
-    question: {
-      type: 'multiple_choice' | 'essay'
-      correct_answer: string
-      time_limit_seconds: number
-      explanation: string
-      study_tip: string
-      question_text: string
-    } | null
-  } | null)?.question
+  let question = (issuedQuestion as unknown as { question: QuestionData | null } | null)?.question
+
+  // Fallback para sessões criadas antes da tabela quiz_session_questions existir
+  if (!question) {
+    const { count: issuedCount } = await serviceClient
+      .from('quiz_session_questions')
+      .select('id', { count: 'exact', head: true })
+      .eq('session_id', sessionId)
+      .eq('block_number', blockNumber)
+
+    if ((issuedCount ?? 0) === 0) {
+      // Sessão antiga — busca questão diretamente validando level e block
+      const { data: directQuestion } = await serviceClient
+        .from('questions')
+        .select('type, correct_answer, time_limit_seconds, explanation, study_tip, question_text, level, difficulty')
+        .eq('id', questionId)
+        .single()
+
+      if (directQuestion && directQuestion.level === session.level && directQuestion.difficulty === blockNumber) {
+        question = directQuestion as QuestionData
+      }
+    }
+  }
 
   if (!question) {
     return NextResponse.json({ error: 'Question was not issued for this block' }, { status: 403 })
