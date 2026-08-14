@@ -79,21 +79,34 @@ export function useQuizEngine({ sessionId, level }: UseQuizEngineOptions) {
     setLastUserAnswer(answer)
 
     const question = block.questions[block.currentIndex]
-    const res = await fetch('/api/quiz/answer', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId,
-        questionId: question.id,
-        blockNumber: currentBlock,
-        userAnswer: answer,
-        questionStartedAt: block.questionStartedAt,
-      }),
-    })
+    try {
+      const res = await fetch('/api/quiz/answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          questionId: question.id,
+          blockNumber: currentBlock,
+          userAnswer: answer,
+          questionStartedAt: block.questionStartedAt,
+        }),
+      })
 
-    const feedback: AnswerFeedback & { answerId?: string } = await res.json()
-    setCurrentFeedback(feedback)
-    setPhase('feedback')
+      const feedback: AnswerFeedback & { answerId?: string; error?: string } = await res.json()
+      if (!res.ok) {
+        setLoadError(
+          feedback.error === 'Question was not issued for this block'
+            ? 'Este quiz foi iniciado antes da atualização. Inicie um novo quiz para continuar.'
+            : feedback.error ?? 'Não foi possível registrar sua resposta. Tente novamente.'
+        )
+        return
+      }
+
+      setCurrentFeedback(feedback)
+      setPhase('feedback')
+    } catch {
+      setLoadError('Erro de conexão ao registrar sua resposta. Tente novamente.')
+    }
   }, [block, answered, sessionId, currentBlock])
 
   const handleNext = useCallback(() => {

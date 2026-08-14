@@ -3,11 +3,6 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { selectQuestionsForBlock } from '@/lib/quiz/selector'
 import type { CEFRLevel, Difficulty, Question, QuestionWithAnswer } from '@/types'
 
-type IssuedQuestionRow = {
-  position: number
-  question: QuestionWithAnswer | null
-}
-
 function toSafeQuestion(question: QuestionWithAnswer): Question {
   const safeQuestion = { ...question }
   delete (safeQuestion as Partial<QuestionWithAnswer>).correct_answer
@@ -67,18 +62,7 @@ export async function POST(request: NextRequest) {
   const serviceClient = createServiceClient()
   let sessionId = existingSessionId
 
-  if (block === 1) {
-    const { data: session, error } = await serviceClient
-      .from('quiz_sessions')
-      .insert({ user_id: user.id, level, current_block: 1 })
-      .select('id')
-      .single()
-
-    if (error || !session) {
-      return NextResponse.json({ error: 'Failed to create session' }, { status: 500 })
-    }
-    sessionId = session.id
-  } else {
+  if (existingSessionId) {
     const { data: session } = await supabase
       .from('quiz_sessions')
       .select('id, level, current_block, status')
@@ -93,6 +77,19 @@ export async function POST(request: NextRequest) {
     if (session.level !== level || session.current_block !== block) {
       return NextResponse.json({ error: 'Invalid session state' }, { status: 409 })
     }
+  } else if (block === 1) {
+    const { data: session, error } = await serviceClient
+      .from('quiz_sessions')
+      .insert({ user_id: user.id, level, current_block: 1 })
+      .select('id')
+      .single()
+
+    if (error || !session) {
+      return NextResponse.json({ error: 'Failed to create session' }, { status: 500 })
+    }
+    sessionId = session.id
+  } else {
+    return NextResponse.json({ error: 'Missing sessionId' }, { status: 400 })
   }
 
   if (!sessionId) {
