@@ -3,10 +3,6 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { selectQuestionsForBlock } from '@/lib/quiz/selector'
 import type { CEFRLevel, Difficulty, Question, QuestionWithAnswer } from '@/types'
 
-type IssuedQuestionRow = {
-  position: number
-  question: QuestionWithAnswer | null
-}
 
 function toSafeQuestion(question: QuestionWithAnswer): Question {
   const safeQuestion = { ...question }
