@@ -19,18 +19,28 @@ async function getIssuedQuestions(
   sessionId: string,
   block: Difficulty
 ): Promise<Question[]> {
-  const { data } = await supabase
+  const { data: rows } = await supabase
     .from('quiz_session_questions')
-    .select('position, question:questions(*)')
+    .select('position, question_id')
     .eq('session_id', sessionId)
     .eq('block_number', block)
     .order('position')
 
-  return ((data ?? []) as unknown as IssuedQuestionRow[])
-    .flatMap(({ question }) => {
-      if (!question) return []
-      return [toSafeQuestion(question)]
-    })
+  if (!rows || rows.length === 0) return []
+
+  const questionIds = rows.map(r => r.question_id)
+  const { data: questions } = await supabase
+    .from('questions')
+    .select('*')
+    .in('id', questionIds)
+
+  if (!questions) return []
+
+  const byId = Object.fromEntries(questions.map(q => [q.id, q]))
+  return rows
+    .map(r => byId[r.question_id])
+    .filter(Boolean)
+    .map(q => toSafeQuestion(q as QuestionWithAnswer))
 }
 
 export async function POST(request: NextRequest) {
