@@ -39,6 +39,12 @@ imagens_testes/
 # claude local
 .claude/worktrees/
 
+# Obsidian: preserve shared vault settings, ignore personal window layout
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+docs/.obsidian/workspace.json
+docs/.obsidian/workspace-mobile.json
+
 # scratch / one-off scripts (contain secrets, not part of project)
 vps_*.py
 check_oauth*.py
